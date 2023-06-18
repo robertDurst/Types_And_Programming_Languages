@@ -15,6 +15,38 @@ let rec isnumericval t = match t with
   | TmSucc t1 -> isnumericval t1
   | _ -> false
 
+(* check whether a term is a value *)
+let isval t = match t with
+  | TmTrue -> true
+  | TmFalse -> true
+  | t when isnumericval t -> true
+  | _ -> false
+
+exception NoRuleApplies
+
+(* evaluate a term *)
+let rec eval1 t = match t with
+  | TmIf (TmTrue, t2, t3) -> t2
+  | TmIf (TmFalse, t2, t3) -> t3
+  | TmIf (t1, t2, t3) -> TmIf (eval1 t1, t2, t3)
+  | TmSucc t1 -> TmSucc (eval1 t1)
+  | TmPred TmZero -> TmZero
+  | TmPred (TmSucc nv1) when isnumericval nv1 -> nv1
+  | TmPred t1 -> TmPred (eval1 t1)
+  | TmIsZero TmZero -> TmTrue
+  | TmIsZero (TmSucc nv1) when isnumericval nv1 -> TmFalse
+  | TmIsZero t1 -> TmIsZero (eval1 t1)
+  | _ -> raise NoRuleApplies
+
+(* evaluate a term until it is a value *)
+let rec eval t =
+  try
+    let t' = eval1 t in
+    eval t'
+  with
+    | _ -> t
+
+(* convert a term to a string *)
 let rec debugstring t = match t with
   | TmTrue -> "true"
   | TmFalse -> "false"
@@ -26,5 +58,5 @@ let rec debugstring t = match t with
 
 let printterm t = Printf.printf "%s\n%!" (debugstring t)
 
-let () = printterm TmTrue
+let () = Printf.printf "%s\n%!" ((eval (TmIf (TmIsZero (TmPred (TmSucc (TmSucc TmZero))), TmTrue, TmFalse))) |> debugstring)
 
