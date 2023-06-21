@@ -50,7 +50,7 @@ let rec eval t =
 let rec debugstring t = match t with
   | TmTrue -> "true"
   | TmFalse -> "false"
-  | TmIf (_, _, _) -> "if"
+  | TmIf (t1, t2, t3) -> String.concat "" ["if "; debugstring t1; " then "; debugstring t2; " else "; debugstring t3]
   | TmZero -> "zero"
   | TmSucc t1 -> Printf.sprintf "succ(%s)" (debugstring t1)
   | TmPred t1 -> Printf.sprintf "pred(%s)" (debugstring t1)
@@ -58,5 +58,5 @@ let rec debugstring t = match t with
 
 let printterm t = Printf.printf "%s\n%!" (debugstring t)
 
-let () = Printf.printf "%s\n%!" ((eval (TmIf (TmIsZero (TmPred (TmSucc (TmSucc TmZero))), TmTrue, TmFalse))) |> debugstring)
+let () = Printf.printf "%s\n%!" (TmIf (TmIsZero (TmPred (TmSucc (TmSucc TmZero))), TmTrue, TmFalse) |> debugstring)
 
